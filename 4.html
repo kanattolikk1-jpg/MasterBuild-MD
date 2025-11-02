@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MasterBuild Moldova — Demo Reproducere</title>
+
+  <!-- ========== NOTE IMPORTANTE ==========
+   1) Acest fișier folosește EmailJS pentru a trimite mesaje reale direct din browser.
+      Pași rapizi (faci o dată):
+        a) Mergi la https://www.emailjs.com și creează cont (free tier funcțional).
+        b) Configurează un Email Service (ex: Gmail) — vei obține un Service ID.
+        c) Creează un Template (adică ce format să aibă emailul) — obții Template ID.
+        d) În dashboard > Integration găsești Public Key (User ID).
+        e) În codul de jos, înlocuiește următoarele constante:
+           - EMAILJS_SERVICE_ID
+           - EMAILJS_TEMPLATE_ID
+           - EMAILJS_PUBLIC_KEY
+      După acești pași, formularul va trimite emailuri reale către adresa afișată în câmpuri.
+   2) Am folosit CDN pentru Font Awesome (nu e nevoie de kit).
+   3) Salvează ca index.html și deschide în browser.
+  ======================================= -->
+
+  <!-- Fonts + Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pbV0VYkf2N2m3s8Yw2xFtk6QYVhQ2q0Kp2B6Yw+9e6bqKQfLQ2Zg3q3+Rz6QJg5kH6g+LVj7q3X4k2g0y3dQ2g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <style>
+    :root{
+      --accent:#f06414; /* bright orange */
+      --accent-dark:#d24f10;
+      --muted:#f8efe6;
+      --text:#0f1723;
+      --soft:#f4e9e1;
+      --card-border: rgba(208,124,85,0.14);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      color:var(--text);
+      line-height:1.5;
+      background:white;
+      scroll-behavior:smooth;
+    }
+    a{color:inherit;text-decoration:none}
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:60;
+      background:linear-gradient(to bottom, rgba(255,255,255,0.98), rgba(255,255,255,0.9));
+      backdrop-filter: blur(4px);
+      border-bottom:1px solid rgba(15,23,35,0.03);
+    }
+    .container{max-width:1180px;margin:0 auto;padding:0 20px}
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:16px 0;
+    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand .logo{
+      background:linear-gradient(180deg,var(--accent),var(--accent-dark));
+      color:#fff;
+      width:42px;height:42px;border-radius:8px;
+      display:flex;align-items:center;justify-content:center;font-weight:700;
+      box-shadow:0 6px 18px rgba(240,100,20,0.18);
+    }
+    .brand h1{font-size:18px;margin:0;color:var(--accent-dark);font-weight:700}
+    nav ul{display:flex;gap:22px;list-style:none;margin:0;padding:0;align-items:center}
+    .cta{
+      background:linear-gradient(180deg,var(--accent),var(--accent-dark));
+      color:#fff;padding:10px 16px;border-radius:10px;box-shadow:0 8px 18px rgba(208,86,30,0.14);
+      font-weight:600;
+    }
+
+    .hero{
+      position:relative;
+      min-height:78vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      color:#fff;
+      background:
+        linear-gradient(180deg, rgba(240,56,56,0.18), rgba(240,56,56,0.28) 55%);
+      padding:80px 20px;
+    }
+    .hero .inner{max-width:940px}
+    .hero h2{
+      font-size:64px;
+      margin:0 0 14px;
+      font-weight:800;
+      letter-spacing:-1px;
+      text-shadow:0 6px 22px rgba(0,0,0,0.28);
+    }
+    .hero p{font-size:18px;opacity:0.95;margin-bottom:22px}
+    .actions{display:flex;gap:14px;justify-content:center;margin-top:14px}
+    .btn{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:10px;border:0;cursor:pointer;font-weight:700;}
+    .btn-primary{
+      background:linear-gradient(180deg,var(--accent),var(--accent-dark));
+      color:#fff;box-shadow:0 10px 30px rgba(208,86,30,0.16);
+    }
+    .btn-outline{
+      background:transparent;border:2px solid rgba(255,255,255,0.32);color:#fff;padding:10px 16px;
+      backdrop-filter: blur(2px);
+    }
+    .stats{display:flex;gap:34px;justify-content:center;margin-top:36px}
+    .stat{min-width:110px}
+    .stat strong{display:block;font-size:22px}
+
+    section.services{padding:80px 20px;background:transparent}
+    .services .title{text-align:center;margin-bottom:18px}
+    .services h3{font-size:40px;margin:0;font-weight:800}
+    .services p.lead{color:#6b7280;max-width:720px;margin:12px auto 32px}
+    .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:26px;max-width:1100px;margin:0 auto}
+    .card{
+      border-radius:14px;padding:28px;background:linear-gradient(180deg,#fff,#fff);
+      box-shadow:0 12px 30px rgba(225,170,150,0.06);
+      border:1px solid var(--card-border);
+      display:flex;gap:18px;align-items:flex-start;
+      transition:transform .28s ease, box-shadow .28s ease;
+      position:relative;
+    }
+    .card .icon{
+      background:linear-gradient(180deg,var(--accent),var(--accent-dark));
+      width:60px;height:60px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;
+      box-shadow:0 8px 20px rgba(240,100,20,0.12);
+      font-size:22px;
+      flex-shrink:0;
+    }
+    .card h4{margin:0 0 10px;font-size:20px}
+    .card p{margin:0;color:#6b7280}
+    .card:hover{transform:translateY(-8px);box-shadow:0 20px 40px rgba(208,86,30,0.12)}
+
+    .card.feature{
+      background:linear-gradient(180deg, #ff6a2a, #e44c16);
+      color:#fff;border:0;box-shadow:0 20px 50px rgba(228,76,22,0.18);
+    }
+    .card.feature .icon{background:rgba(255,255,255,0.12);color:#fff}
+
+    .testimonials{background:linear-gradient(180deg,var(--muted),#fff);padding:48px 20px}
+    .testimonials .title{text-align:center;margin-bottom:26px}
+    .carousel{display:flex;gap:20px;overflow:hidden;max-width:1100px;margin:0 auto;padding:6px}
+    .testimonial{
+      min-width:300px;background:#fff;border-radius:12px;padding:18px;border:1px solid rgba(208,124,85,0.08);
+      box-shadow:0 8px 20px rgba(0,0,0,0.04);
+      flex-shrink:0;
+    }
+    .testimonial .meta{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+    .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,var(--accent),var(--accent-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+    .name{font-weight:700}
+    .role{color:#6b7280;font-size:13px}
+    .testimonial p{color:#334155;font-size:14px;margin:8px 0 0}
+
+    .carousel-controls{display:flex;gap:8px;justify-content:center;margin-top:14px}
+    .dot{width:10px;height:10px;border-radius:50%;background:rgba(15,23,35,0.08);cursor:pointer}
+    .dot.active{background:var(--accent)}
+
+    .contact{padding:72px 20px}
+    .contact h3{text-align:center;font-size:36px;margin-bottom:6px}
+    .contact .lead{max-width:820px;margin:8px auto 28px;color:#6b7280;text-align:center}
+    .contact-grid{display:grid;grid-template-columns:1fr 420px;gap:34px;max-width:1180px;margin:0 auto}
+    .form-card{
+      background:linear-gradient(180deg,var(--soft),#fff);
+      padding:22px;border-radius:12px;border:1px solid rgba(222,170,140,0.12);
+      box-shadow:0 18px 30px rgba(226,128,92,0.06);
+    }
+    .form-row{display:flex;gap:12px}
+    .form-row .field{flex:1;margin-bottom:12px}
+    label{display:block;font-size:13px;margin-bottom:6px;color:#6b7280}
+    input[type="text"],input[type="email"],textarea{
+      width:100%;padding:12px;border-radius:8px;border:1px solid rgba(15,23,35,0.06);font-size:14px;
+      background:#fff;resize:vertical;
+    }
+    textarea{min-height:120px}
+    .submit{
+      width:100%;padding:12px;border-radius:8px;border:0;font-weight:700;
+      background:linear-gradient(180deg,var(--accent),var(--accent-dark));color:#fff;margin-top:8px;cursor:pointer;
+    }
+    .contact-info{display:flex;flex-direction:column;gap:16px}
+    .info-row{display:flex;gap:12px;align-items:center;background:#fff;padding:12px;border-radius:10px;border:1px solid rgba(208,124,85,0.08)}
+    .info-row .ico{background:linear-gradient(180deg,var(--accent),var(--accent-dark));width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff}
+
+    footer{padding:28px 20px;text-align:center;color:#6b7280}
+
+    @media (max-width:900px){
+      .cards{grid-template-columns:1fr}
+      .carousel{overflow-x:auto;padding-bottom:8px}
+      .contact-grid{grid-template-columns:1fr}
+      .hero h2{font-size:42px}
+      .hero{padding:64px 20px}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <div class="logo">MB</div>
+        <h1>MasterBuild Moldova</h1>
+      </div>
+
+      <nav>
+        <ul>
+          <li><a href="#acasa">Acasă</a></li>
+          <li><a href="#servicii">Servicii</a></li>
+          <li><a href="#recenzii">Recenzii</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div>
+        <a class="cta" href="#contact">Solicitați Ofertă</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section id="acasa" class="hero" aria-label="Secțiunea principală">
+    <div class="inner container">
+      <h2>MasterBuild Moldova — Experți în <br>Acoperișuri</h2>
+      <p>Servicii complete de vopsire acoperişuri, betonare și amenajare fațade. Calitate superioară și profesionalism garantat de 7 ani.</p>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="cta-offer"><i class="fa fa-paper-plane" aria-hidden="true"></i> Solicitați Ofertă Gratuită</button>
+        <a class="btn btn-outline" href="tel:+37300000000"><i class="fa fa-phone" aria-hidden="true"></i> Sunați Acum</a>
+      </div>
+
+      <div class="stats" aria-hidden="true" style="margin-top:36px">
+        <div class="stat"><strong>500+</strong><span>Proiecte Finalizate</span></div>
+        <div class="stat"><strong>7 Ani</strong><span>Experiență</span></div>
+        <div class="stat"><strong>100%</strong><span>Satisfacție Clienți</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="servicii" class="services">
+    <div class="container">
+      <div class="title">
+        <h3>Serviciile Noastre Profesionale</h3>
+        <p class="lead">De la vopsirea acoperişurilor la amenajări complete - soluții integrate pentru casa sau afacerea dvs.</p>
+      </div>
+
+      <div class="cards" role="list">
+        <article class="card feature" role="listitem" aria-label="Vopsirea Acoperișurilor">
+          <div class="icon"><i class="fa-solid fa-paint-roller" aria-hidden="true"></i></div>
+          <div>
+            <h4>Vopsirea Acoperișurilor</h4>
+            <p>Serviciul nostru principal - vopsim acoperișuri cu materiale premium, rezistente la intemperii și UV. Garanție pe termen lung.</p>
+          </div>
+        </article>
+
+        <article class="card" role="listitem" aria-label="Betonare Profesională">
+          <div class="icon"><i class="fa-solid fa-wrench" aria-hidden="true"></i></div>
+          <div>
+            <h4>Betonare Profesională</h4>
+            <p>Lucrări de betonare de calitate superioară pentru fundații, trotuare, alei și alte construcții.</p>
+          </div>
+        </article>
+
+        <article class="card" role="listitem" aria-label="Amenajarea Fațadelor">
+          <div class="icon"><i class="fa-solid fa-building" aria-hidden="true"></i></div>
+          <div>
+            <h4>Amenajarea Fațadelor</h4>
+            <p>Zugrăveli exterioare, tencuieli decorative și finisaje moderne pentru aspectul perfect al clădirii dvs.</p>
+          </div>
+        </article>
+
+        <article class="card" role="listitem" aria-label="Execuție completă">
+          <div class="icon"><i class="fa-solid fa-check-circle" aria-hidden="true"></i></div>
+          <div>
+            <h4>Execuție Completă</h4>
+            <p>Echipe specializate, materiale certificate și finalizare la timp. 7 ani de experiență în construcții.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS (nume fictive NP, locație Obiectivul Călărași) -->
+  <section id="recenzii" class="testimonials">
+    <div class="container">
+      <div class="title">
+        <h3>Ce Spun Clienții Noștri</h3>
+        <p class="lead">Feedback fictiv (NP) pentru afișare demo — toate proiectele: <strong>Obiectivul Călărași</strong>.</p>
+      </div>
+
+      <div class="carousel" id="carousel">
+        <div class="testimonial">
+          <div class="meta"><div class="avatar">NP1</div><div><div class="name">NP1</div><div class="role">Proiect: Obiectivul Călărași</div></div></div>
+          <p>"Echipa a realizat lucrările la Obiectivul Călărași conform planului — calitate și punctualitate."</p>
+        </div>
+
+        <div class="testimonial">
+          <div class="meta"><div class="avatar">NP2</div><div><div class="name">NP2</div><div class="role">Proiect: Obiectivul Călărași</div></div></div>
+          <p>"Lucrările de vopsire și finisaj au fost excelente. Recomand pentru proiecte mari precum Obiectivul Călărași."</p>
+        </div>
+
+        <div class="testimonial">
+          <div class="meta"><div class="avatar">NP3</div><div><div class="name">NP3</div><div class="role">Proiect: Obiectivul Călărași</div></div></div>
+          <p>"Profesionalism și comunicare foarte bună pe tot parcursul lucrărilor la Obiectivul Călărași."</p>
+        </div>
+      </div>
+
+      <div class="carousel-controls" id="dots"></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="contact">
+    <div class="container">
+      <h3>Contactați-ne Astăzi</h3>
+      <p class="lead">Primiți o evaluare și ofertă gratuită pentru proiectul dvs. Răspundem rapid!</p>
+
+      <div class="contact-grid">
+        <!-- Form -->
+        <div class="form-card" aria-labelledby="contactFormTitle">
+          <h4 id="contactFormTitle">Trimiteți-ne un Mesaj</h4>
+
+          <form id="contactForm" novalidate>
+            <div class="form-row">
+              <div class="field">
+                <label for="firstName">Nume</label>
+                <input id="firstName" name="firstName" type="text" placeholder="Popescu" required>
+              </div>
+              <div class="field">
+                <label for="lastName">Prenume</label>
+                <input id="lastName" name="lastName" type="text" placeholder="Ion" required>
+              </div>
+            </div>
+
+            <div style="margin-bottom:12px">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" placeholder="ion@example.com" required>
+            </div>
+
+            <div style="margin-bottom:12px">
+              <label for="phone">Telefon</label>
+              <input id="phone" name="phone" type="text" placeholder="+373 ## ### ###" required>
+            </div>
+
+            <div style="margin-bottom:12px">
+              <label for="message">Mesaj</label>
+              <textarea id="message" name="message" placeholder="Descrieți proiectul dvs..." required></textarea>
+            </div>
+
+            <div id="formAlert" role="status" aria-live="polite" style="display:none;padding:10px;border-radius:8px;margin-bottom:8px"></div>
+
+            <button type="submit" class="submit" id="submitBtn">Trimite Mesaj</button>
+          </form>
+        </div>
+
+        <!-- Contact info -->
+        <div>
+          <div style="margin-bottom:8px">
+            <h4>Contactați-ne Direct</h4>
+            <p style="color:#6b7280">Suntem gata să răspundem la toate întrebările dvs. și să vă oferim o ofertă personalizată.</p>
+          </div>
+
+          <div class="contact-info">
+            <div class="info-row">
+              <div class="ico"><i class="fa-solid fa-envelope"></i></div>
+              <div>
+                <strong>Email</strong>
+                <div style="color:#6b7280">contact@masterbuild.md</div>
+              </div>
+            </div>
+
+            <div class="info-row">
+              <div class="ico"><i class="fa-solid fa-phone"></i></div>
+              <div>
+                <strong>Telefon</strong>
+                <div style="color:#6b7280">+373 00 000 000</div>
+              </div>
+            </div>
+
+            <div class="info-row">
+              <div class="ico"><i class="fa-solid fa-map-marker-alt"></i></div>
+              <div>
+                <strong>Locație</strong>
+                <div style="color:#6b7280">Chișinău, Moldova</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      © <span id="year"></span> MasterBuild Moldova — Toate drepturile rezervate.
+    </div>
+  </footer>
+
+  <!-- EmailJS SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+  <script>
+    // ================== CONFIG (INLOCUIESTE CU DATELE TALE EMAILJS) ==================
+    const EMAILJS_SERVICE_ID = 'YOUR_EMAILJS_SERVICE_ID';     // ex: 'service_xxx'
+    const EMAILJS_TEMPLATE_ID = 'YOUR_EMAILJS_TEMPLATE_ID';   // ex: 'template_xxx'
+    const EMAILJS_PUBLIC_KEY   = 'YOUR_EMAILJS_PUBLIC_KEY';   // ex: 'user_xxx'
+    // ================================================================================
+
+    // helper selectors
+    const $ = sel => document.querySelector(sel);
+
+    // set current year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // CTA scroll
+    document.getElementById('cta-offer').addEventListener('click', () => {
+      document.getElementById('contact').scrollIntoView({behavior:'smooth'});
+    });
+
+    // Testimonials carousel
+    const carousel = document.getElementById('carousel');
+    const testimonials = carousel.querySelectorAll('.testimonial');
+    const dotsContainer = document.getElementById('dots');
+    let activeIndex = 0, autoTimer = null;
+
+    function buildDots(){
+      dotsContainer.innerHTML = '';
+      testimonials.forEach((t,i) => {
+        const d = document.createElement('div');
+        d.className = 'dot' + (i===0?' active':'');
+        d.dataset.index = i;
+        d.addEventListener('click', ()=> goto(i));
+        dotsContainer.appendChild(d);
+      });
+    }
+    function goto(index){
+      activeIndex = index;
+      const width = testimonials[0].offsetWidth + 20;
+      carousel.scrollTo({left: index * width, behavior:'smooth'});
+      Array.from(dotsContainer.children).forEach((d,i)=> d.classList.toggle('active', i===index));
+    }
+    function startAuto(){
+      clearInterval(autoTimer);
+      autoTimer = setInterval(()=> {
+        activeIndex = (activeIndex+1) % testimonials.length;
+        goto(activeIndex);
+      }, 4500);
+    }
+    buildDots();
+    startAuto();
+    carousel.addEventListener('mouseenter', ()=> clearInterval(autoTimer));
+    carousel.addEventListener('mouseleave', startAuto);
+
+    // Smooth page anchor scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click', (e)=>{
+        const href = a.getAttribute('href');
+        if(href.length>1){
+          e.preventDefault();
+          const el = document.querySelector(href);
+          if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+      })
+    });
+
+    // Basic phone mask
+    const phoneInput = document.getElementById('phone');
+    phoneInput.addEventListener('input', () => {
+      let v = phoneInput.value.replace(/[^\d\+]/g, '');
+      if(!v.startsWith('+')) v = v.replace(/^(\d{3})/, '+$1 ');
+      phoneInput.value = v;
+    });
+
+    // ============ EmailJS integration ============
+    // Initialize EmailJS library (requires PUBLIC KEY)
+    (function(){
+      if(EMAILJS_PUBLIC_KEY && EMAILJS_PUBLIC_KEY !== 'YOUR_EMAILJS_PUBLIC_KEY'){
+        try {
+          emailjs.init(EMAILJS_PUBLIC_KEY);
+          console.info('EmailJS initialized.');
+        } catch(e){
+          console.warn('EmailJS init error:', e);
+        }
+      } else {
+        console.warn('EmailJS PUBLIC KEY not set — copiază cheia ta în EMAILJS_PUBLIC_KEY pentru a activa trimiterea.');
+      }
+    })();
+
+    const contactForm = document.getElementById('contactForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const formAlert = document.getElementById('formAlert');
+
+    function showAlert(message, type='info'){
+      formAlert.style.display = 'block';
+      formAlert.textContent = message;
+      if(type==='success'){
+        formAlert.style.background = 'linear-gradient(90deg, rgba(214,240,221,1), rgba(237,252,239,1))';
+        formAlert.style.color = '#0f5132';
+        formAlert.style.border = '1px solid rgba(15,100,60,0.06)';
+      } else if(type==='error'){
+        formAlert.style.background = 'linear-gradient(90deg, rgba(255,237,237,1), rgba(255,245,245,1))';
+        formAlert.style.color = '#6b0b0b';
+        formAlert.style.border = '1px solid rgba(120,20,20,0.06)';
+      } else {
+        formAlert.style.background = 'transparent';
+        formAlert.style.color = '#333';
+      }
+    }
+
+    contactForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+
+      const data = {
+        firstName: contactForm.firstName.value.trim(),
+        lastName: contactForm.lastName.value.trim(),
+        email: contactForm.email.value.trim(),
+        phone: contactForm.phone.value.trim(),
+        message: contactForm.message.value.trim(),
+        // You can include destination email here if your EmailJS template uses it.
+        to_email: 'contact@masterbuild.md'
+      };
+
+      if(!data.firstName || !data.lastName || !data.email || !data.phone || !data.message){
+        showAlert('Completați toate câmpurile, vă rugăm.', 'error');
+        return;
+      }
+
+      if(!EMAILJS_SERVICE_ID || EMAILJS_SERVICE_ID === 'YOUR_EMAILJS_SERVICE_ID' ||
+         !EMAILJS_TEMPLATE_ID || EMAILJS_TEMPLATE_ID === 'YOUR_EMAILJS_TEMPLATE_ID' ||
+         !EMAILJS_PUBLIC_KEY || EMAILJS_PUBLIC_KEY === 'YOUR_EMAILJS_PUBLIC_KEY'){
+        showAlert('Formularul nu este configurat pentru trimitere. Puneți EMAILJS IDs în cod.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Se trimite...';
+
+      try {
+        // emailjs.send(serviceID, templateID, templateParams)
+        const res = await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, data);
+        // emailjs returns a promise that resolves on success
+        showAlert('Mesaj trimis cu succes! Vă vom contacta în curând.', 'success');
+        contactForm.reset();
+      } catch (err) {
+        console.error('EmailJS error:', err);
+        showAlert('A apărut o eroare la trimitere. Verificați setările EmailJS (Service ID, Template ID, Public Key).', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Trimite Mesaj';
+      }
+    });
+  </script>
+</body>
+</html>
